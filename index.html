@@ -126,7 +126,7 @@
                 </div>
                 <div>
                     <h2 class="text-xl sm:text-2xl font-bold">Como Hospedar Gratuitamente no GitHub Pages</h2>
-                    <p class="text-sm text-slate-300">Siga estes 4 passos simples para criar o seu site no GitHub em 2 minutos</p>
+                    <p class="text-sm text-slate-300">Atualize o DropHub existente sem criar um segundo site</p>
                 </div>
             </div>
 
@@ -137,7 +137,7 @@
                         Criar Repositório
                     </div>
                     <p class="text-xs text-slate-300 leading-relaxed">
-                        Acesse <b>github.com/new</b>, digite o nome <code class="bg-slate-800 px-1 py-0.5 rounded text-indigo-300">drophub</code>, marque como <b>Public</b> e clique em <b>Create repository</b>.
+                        Abra o repositório existente do DropHub no GitHub. Não crie outro repositório.
                     </p>
                 </div>
 
@@ -147,7 +147,7 @@
                         Criar Arquivo
                     </div>
                     <p class="text-xs text-slate-300 leading-relaxed">
-                        No repositório criado, clique em <b>"creating a new file"</b>. No campo do nome, digite exatamente: <code class="bg-slate-800 px-1 py-0.5 rounded text-indigo-300">index.html</code>.
+                        No repositório existente, abra o arquivo <code class="bg-slate-800 px-1 py-0.5 rounded text-indigo-300">index.html</code> e escolha editar.
                     </p>
                 </div>
 
@@ -157,7 +157,7 @@
                         Colar o Código
                     </div>
                     <p class="text-xs text-slate-300 leading-relaxed">
-                        Clique no botão abaixo para copiar o código fonte HTML inteiro, cole dentro da caixa de texto do GitHub e clique no botão verde <b>"Commit changes..."</b>.
+                        Substitua o conteúdo do arquivo pelo HTML revisado e clique em <b>Commit changes</b> para publicar.
                     </p>
                 </div>
 
@@ -167,7 +167,7 @@
                         Ativar GitHub Pages
                     </div>
                     <p class="text-xs text-slate-300 leading-relaxed">
-                        Vá em <b>Settings > Pages</b>. Em <i>Branch</i>, selecione <b>main</b> e clique em <b>Save</b>. Pronto! Em 1 minuto seu site estará no ar!
+                        Se o GitHub Pages já estiver ativo, aguarde a publicação após o commit. Só configure Settings &gt; Pages se o site ainda não estiver publicado.
                     </p>
                 </div>
             </div>
@@ -229,7 +229,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Nome do Site</label>
-                    <input type="text" id="linkTitle" required placeholder="Ex: Gemini, Mercado Livre..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                    <input type="text" id="linkTitle" required placeholder="Ex: ChatGPT, Mercado Livre..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
                 </div>
 
                 <div>
@@ -286,10 +286,10 @@
         const defaultLinks = [
             {
                 id: '1',
-                title: 'Gemini AI',
-                url: 'https://gemini.google.com/app/b75245cd44217570',
+                title: 'ChatGPT',
+                url: 'https://chatgpt.com/',
                 category: 'ia_criacao',
-                desc: 'Assistente Inteligente & Gerador de Copys',
+                desc: 'Assistente de IA para copys, ideias e apoio à operação',
                 favorite: true
             },
             {
@@ -343,14 +343,53 @@
         ];
 
         // State Management
-        let links = JSON.parse(localStorage.getItem('drophub_user_links')) || defaultLinks;
+        // Recupera os links com segurança. Se houver JSON inválido ou uma lista vazia
+        // salva anteriormente, restaura os atalhos iniciais para evitar painel em branco.
+        function loadInitialLinks() {
+            try {
+                const saved = localStorage.getItem('drophub_user_links');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        return parsed.filter(link =>
+                            link && typeof link.id === 'string' &&
+                            typeof link.title === 'string' &&
+                            typeof link.url === 'string' &&
+                            typeof link.category === 'string'
+                        ).map(link => {
+                            // Migra o atalho antigo do Gemini para o ChatGPT,
+                            // inclusive quando o navegador já tem links salvos.
+                            const isGemini = /gemini/i.test(link.title) || /gemini\.google\.com/i.test(link.url);
+                            return isGemini ? {
+                                ...link,
+                                title: 'ChatGPT',
+                                url: 'https://chatgpt.com/',
+                                category: 'ia_criacao',
+                                desc: 'Assistente de IA para copys, ideias e apoio à operação',
+                                favorite: link.favorite !== false
+                            } : link;
+                        });
+                    }
+                }
+            } catch (error) {
+                console.warn('Não foi possível ler os links salvos do DropHub:', error);
+            }
+            return defaultLinks.map(link => ({ ...link }));
+        }
+
+        let links = loadInitialLinks();
         let activeCategoryFilter = 'all';
 
         // Initializing UI
         document.addEventListener('DOMContentLoaded', () => {
             initTheme();
             renderCategoriesFilterTabs();
-            renderDashboard();
+            filterLinks();
+            try {
+                localStorage.setItem('drophub_user_links', JSON.stringify(links));
+            } catch (error) {
+                console.warn('Não foi possível salvar a migração dos links:', error);
+            }
             lucide.createIcons();
         });
 
@@ -531,8 +570,14 @@
         }
 
         function saveLinksState() {
-            localStorage.setItem('drophub_user_links', JSON.stringify(links));
-            renderDashboard();
+            try {
+                localStorage.setItem('drophub_user_links', JSON.stringify(links));
+                renderDashboard();
+            } catch (error) {
+                console.error('Não foi possível salvar os links do DropHub:', error);
+                renderDashboard();
+                showToast('Não foi possível salvar neste navegador.');
+            }
         }
 
         function toggleFavorite(id) {
