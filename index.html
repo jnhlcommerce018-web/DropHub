@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DropHub - Central de Operações & Links</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        },
+                        darkbg: '#090d16',
+                        darkcard: '#131b2e',
+                        darkhover: '#1c273e'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .glass-effect {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-darkbg dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <header class="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-darkbg/80 glass-effect">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            
+            <!-- Logo Brand -->
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="p-2 bg-gradient-to-tr from-brand-600 to-indigo-400 rounded-xl text-white shadow-lg shadow-indigo-500/20">
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-none bg-gradient-to-r from-brand-500 to-purple-500 bg-clip-text text-transparent">DropHub</h1>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Central de Acesso Rápido</span>
+                </div>
+            </div>
+
+            <!-- Global Search Input -->
+            <div class="flex-1 max-w-lg mx-2 sm:mx-4">
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Buscar por nome, categoria ou link..." 
+                        class="w-full pl-10 pr-10 py-2 rounded-xl border border-slate-200 dark:border-slate-700/60 bg-slate-100/70 dark:bg-slate-900/60 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm transition-all shadow-inner"
+                        oninput="filterLinks()"
+                    >
+                    <button id="clearSearch" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center gap-2">
+                <button onclick="toggleGithubGuide()" class="flex items-center gap-2 px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs sm:text-sm font-medium transition-all">
+                    <i data-lucide="github" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Como Publicar no GitHub</span>
+                </button>
+
+                <button onclick="openModal()" class="flex items-center gap-2 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs sm:text-sm font-medium transition-all shadow-md shadow-brand-500/20 active:scale-95">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Novo Link</span>
+                </button>
+
+                <!-- Theme Toggle -->
+                <button id="themeToggle" onclick="toggleTheme()" class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors" title="Alternar Tema">
+                    <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- GitHub Pages Publishing Guide Banner Modal/Section -->
+        <section id="githubGuideSection" class="hidden bg-gradient-to-r from-slate-900 to-indigo-950 border border-brand-500/30 rounded-3xl p-6 sm:p-8 text-white relative shadow-2xl space-y-6">
+            <button onclick="toggleGithubGuide()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-xl bg-slate-800/50">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            
+            <div class="flex items-center gap-3">
+                <div class="p-3 bg-brand-600/30 border border-brand-500/40 rounded-2xl">
+                    <i data-lucide="github" class="w-8 h-8 text-brand-400"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold">Como Hospedar Gratuitamente no GitHub Pages</h2>
+                    <p class="text-sm text-slate-300">Siga estes 4 passos simples para criar o seu site no GitHub em 2 minutos</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <div class="flex items-center gap-2 text-brand-400 font-semibold text-sm">
+                        <span class="w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs">1</span>
+                        Criar Repositório
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Acesse <b>github.com/new</b>, digite o nome <code class="bg-slate-800 px-1 py-0.5 rounded text-indigo-300">drophub</code>, marque como <b>Public</b> e clique em <b>Create repository</b>.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <div class="flex items-center gap-2 text-brand-400 font-semibold text-sm">
+                        <span class="w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs">2</span>
+                        Criar Arquivo
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        No repositório criado, clique em <b>"creating a new file"</b>. No campo do nome, digite exatamente: <code class="bg-slate-800 px-1 py-0.5 rounded text-indigo-300">index.html</code>.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <div class="flex items-center gap-2 text-brand-400 font-semibold text-sm">
+                        <span class="w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs">3</span>
+                        Colar o Código
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Clique no botão abaixo para copiar o código fonte HTML inteiro, cole dentro da caixa de texto do GitHub e clique no botão verde <b>"Commit changes..."</b>.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <div class="flex items-center gap-2 text-brand-400 font-semibold text-sm">
+                        <span class="w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs">4</span>
+                        Ativar GitHub Pages
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Vá em <b>Settings > Pages</b>. Em <i>Branch</i>, selecione <b>main</b> e clique em <b>Save</b>. Pronto! Em 1 minuto seu site estará no ar!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Code Copy Drawer -->
+            <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-xs text-slate-400">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 inline text-emerald-400 mr-1"></i> 
+                    O arquivo precisa obrigatoriamente se chamar <span class="text-white font-mono bg-slate-800 px-1.5 py-0.5 rounded">index.html</span>
+                </div>
+                <button onclick="copyFullHtmlCode()" class="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-600/30 active:scale-95">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                    Copiar Código HTML Completo (index.html)
+                </button>
+            </div>
+        </section>
+
+        <!-- Favorites Section -->
+        <section id="favoritesSection" class="space-y-4">
+            <div class="flex items-center gap-2 text-slate-900 dark:text-white font-semibold text-lg">
+                <i data-lucide="star" class="w-5 h-5 text-amber-400 fill-amber-400"></i>
+                <h2>Acesso Rápido & Favoritos</h2>
+            </div>
+            <div id="favoritesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                <!-- Dynamic Favorites Render -->
+            </div>
+        </section>
+
+        <!-- Dynamic Category Tabs Filter -->
+        <div id="categoryFilterTabs" class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-slate-200 dark:border-slate-800">
+            <!-- Dynamic Filters -->
+        </div>
+
+        <!-- Links Cards Layout by Category -->
+        <div id="categoriesContainer" class="space-y-10">
+            <!-- Dynamic Content -->
+        </div>
+
+        <!-- Empty Search State -->
+        <div id="noResults" class="hidden text-center py-16 space-y-3">
+            <div class="inline-flex p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400">
+                <i data-lucide="search-x" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-lg font-medium text-slate-700 dark:text-slate-300">Nenhum link encontrado</h3>
+            <p class="text-sm text-slate-500">Tente buscar por outros termos ou crie um novo link.</p>
+        </div>
+    </main>
+
+    <div id="linkModal" class="fixed inset-0 bg-black/60 glass-effect z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-darkcard border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden transition-all transform">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 id="modalTitle" class="font-bold text-lg text-slate-800 dark:text-slate-100">Adicionar Novo Link</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="linkForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="linkId">
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Nome do Site</label>
+                    <input type="text" id="linkTitle" required placeholder="Ex: Gemini, Mercado Livre..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">URL / Link do Site</label>
+                    <input type="url" id="linkUrl" required placeholder="https://..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Categoria</label>
+                    <select id="linkCategory" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                        <option value="ia_criacao">Inteligência Artificial & Edição</option>
+                        <option value="comunicacao">Comunicação & Email</option>
+                        <option value="vendas_mkt">Vendas & Marketplaces</option>
+                        <option value="redes_sociais">Redes Sociais & Anúncios</option>
+                        <option value="gestao">Gestão & Finanças</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Descrição Curta (Opcional)</label>
+                    <input type="text" id="linkDesc" placeholder="Ex: Painel principal de edição" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                </div>
+
+                <div class="flex items-center gap-2 pt-2">
+                    <input type="checkbox" id="linkFavorite" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 dark:bg-slate-900 border-slate-300 dark:border-slate-700">
+                    <label for="linkFavorite" class="text-sm text-slate-700 dark:text-slate-300 font-medium">Fixar na seção Acesso Rápido</label>
+                </div>
+
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-sm font-medium bg-brand-600 text-white hover:bg-brand-700 transition-colors shadow-md shadow-brand-500/20">Salvar Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-2xl shadow-xl transition-all duration-300 transform translate-y-20 opacity-0">
+        <i id="toastIcon" data-lucide="check-circle" class="w-5 h-5 text-emerald-400 dark:text-emerald-600"></i>
+        <span id="toastMessage" class="text-sm font-medium">Operação realizada com sucesso!</span>
+    </div>
+
+    <script>
+        // Custom Categories Dataset
+        const defaultCategories = [
+            { id: 'ia_criacao', title: 'IA & Edição de Vídeo', icon: 'sparkles', color: 'from-purple-500 to-indigo-500' },
+            { id: 'comunicacao', title: 'Comunicação & Atendimento', icon: 'message-square', color: 'from-emerald-500 to-teal-500' },
+            { id: 'vendas_mkt', title: 'Marketplace & Vendas', icon: 'shopping-bag', color: 'from-amber-500 to-orange-500' },
+            { id: 'redes_sociais', title: 'Redes Sociais', icon: 'share-2', color: 'from-rose-500 to-pink-500' },
+            { id: 'gestao', title: 'Gestão & Finanças', icon: 'wallet', color: 'from-blue-500 to-cyan-500' }
+        ];
+
+        // User's Exact Custom Links Dataset
+        const defaultLinks = [
+            {
+                id: '1',
+                title: 'Gemini AI',
+                url: 'https://gemini.google.com/app/b75245cd44217570',
+                category: 'ia_criacao',
+                desc: 'Assistente Inteligente & Gerador de Copys',
+                favorite: true
+            },
+            {
+                id: '2',
+                title: 'WhatsApp Web',
+                url: 'https://web.whatsapp.com/',
+                category: 'comunicacao',
+                desc: 'Atendimento a clientes e fornecedores',
+                favorite: true
+            },
+            {
+                id: '3',
+                title: 'Gmail',
+                url: 'https://mail.google.com/mail/u/0/?tab=rm&ogbl',
+                category: 'comunicacao',
+                desc: 'Caixa de entrada oficial',
+                favorite: true
+            },
+            {
+                id: '4',
+                title: 'TikTok',
+                url: 'https://www.tiktok.com/',
+                category: 'redes_sociais',
+                desc: 'Mineração de tendências e vídeos',
+                favorite: true
+            },
+            {
+                id: '5',
+                title: 'Mercado Livre',
+                url: 'https://www.mercadolivre.com.br/',
+                category: 'vendas_mkt',
+                desc: 'Painel do vendedor & produtos',
+                favorite: true
+            },
+            {
+                id: '6',
+                title: 'CapCut Web',
+                url: 'https://www.capcut.com/my-edit?start_tab=video',
+                category: 'ia_criacao',
+                desc: 'Edição e criação de vídeos para anúncios',
+                favorite: true
+            },
+            {
+                id: '7',
+                title: 'Notion Financeiro',
+                url: 'https://app.notion.com/p/Painel-de-Controle-Financeiro-5dae9cccd54647c4a370628ed39f033d',
+                category: 'gestao',
+                desc: 'Painel de Controle Financeiro & Métricas',
+                favorite: true
+            }
+        ];
+
+        // State Management
+        let links = JSON.parse(localStorage.getItem('drophub_user_links')) || defaultLinks;
+        let activeCategoryFilter = 'all';
+
+        // Initializing UI
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            renderCategoriesFilterTabs();
+            renderDashboard();
+            lucide.createIcons();
+        });
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('drophub_theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else {
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('drophub_theme', isDark ? 'dark' : 'light');
+        }
+
+        function toggleGithubGuide() {
+            const guide = document.getElementById('githubGuideSection');
+            guide.classList.toggle('hidden');
+        }
+
+        function renderCategoriesFilterTabs() {
+            const tabsContainer = document.getElementById('categoryFilterTabs');
+            let html = `
+                <button onclick="setCategoryFilter('all')" class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${activeCategoryFilter === 'all' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/20' : 'bg-slate-200/70 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-800'}">
+                    Todos os Links
+                </button>
+            `;
+
+            defaultCategories.forEach(cat => {
+                const isActive = activeCategoryFilter === cat.id;
+                html += `
+                    <button onclick="setCategoryFilter('${cat.id}')" class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${isActive ? 'bg-brand-600 text-white shadow-md shadow-brand-500/20' : 'bg-slate-200/70 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-800'}">
+                        <i data-lucide="${cat.icon}" class="w-3.5 h-3.5"></i>
+                        ${cat.title}
+                    </button>
+                `;
+            });
+
+            tabsContainer.innerHTML = html;
+        }
+
+        function setCategoryFilter(catId) {
+            activeCategoryFilter = catId;
+            renderCategoriesFilterTabs();
+            renderDashboard();
+            lucide.createIcons();
+        }
+
+        function getFaviconUrl(domainUrl) {
+            try {
+                const url = new URL(domainUrl);
+                return `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function renderDashboard() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const favoritesGrid = document.getElementById('favoritesGrid');
+            const favoritesSection = document.getElementById('favoritesSection');
+            const categoriesContainer = document.getElementById('categoriesContainer');
+            const noResults = document.getElementById('noResults');
+
+            // Render Favorites
+            const favoriteLinks = links.filter(l => l.favorite);
+            if (favoriteLinks.length > 0 && !searchTerm && activeCategoryFilter === 'all') {
+                favoritesSection.classList.remove('hidden');
+                favoritesGrid.innerHTML = favoriteLinks.map(link => `
+                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="group p-3 rounded-2xl bg-white dark:bg-darkcard border border-slate-200/80 dark:border-slate-800/80 hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/10 transition-all duration-200 flex flex-col justify-between relative">
+                        <div class="flex items-center gap-2.5">
+                            <img src="${getFaviconUrl(link.url)}" class="w-6 h-6 rounded-md object-contain shrink-0" alt="" onerror="this.src='https://placehold.co/32x32/6366f1/ffffff?text=LINK'">
+                            <span class="font-medium text-xs text-slate-800 dark:text-slate-100 truncate group-hover:text-brand-500 transition-colors">${link.title}</span>
+                        </div>
+                        <button onclick="event.preventDefault(); toggleFavorite('${link.id}')" class="absolute top-2 right-2 text-amber-400 hover:scale-110 transition-transform" title="Remover dos favoritos">
+                            <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400"></i>
+                        </button>
+                    </a>
+                `).join('');
+            } else {
+                favoritesSection.classList.add('hidden');
+            }
+
+            // Filter links
+            let filteredLinks = links.filter(link => {
+                const matchesSearch = link.title.toLowerCase().includes(searchTerm) || 
+                                      (link.desc && link.desc.toLowerCase().includes(searchTerm)) ||
+                                      link.url.toLowerCase().includes(searchTerm);
+                const matchesCat = activeCategoryFilter === 'all' || link.category === activeCategoryFilter;
+                return matchesSearch && matchesCat;
+            });
+
+            if (filteredLinks.length === 0) {
+                categoriesContainer.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            // Render Links Grouped by Category
+            let containerHTML = '';
+
+            defaultCategories.forEach(cat => {
+                if (activeCategoryFilter !== 'all' && activeCategoryFilter !== cat.id) return;
+
+                const catLinks = filteredLinks.filter(l => l.category === cat.id);
+                if (catLinks.length === 0) return;
+
+                containerHTML += `
+                    <section class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="p-2 rounded-xl bg-gradient-to-r ${cat.color} text-white shadow-sm">
+                                    <i data-lucide="${cat.icon}" class="w-4 h-4"></i>
+                                </div>
+                                <h3 class="font-bold text-base text-slate-800 dark:text-slate-100">${cat.title}</h3>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-400">${catLinks.length}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            ${catLinks.map(link => `
+                                <div class="group relative bg-white dark:bg-darkcard border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/10 transition-all duration-200 flex flex-col justify-between">
+                                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="block space-y-2">
+                                        <div class="flex items-center gap-3">
+                                            <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shrink-0">
+                                                <img src="${getFaviconUrl(link.url)}" class="w-5 h-5 rounded object-contain" alt="" onerror="this.src='https://placehold.co/32x32/6366f1/ffffff?text=LINK'">
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <h4 class="font-semibold text-sm text-slate-800 dark:text-slate-100 truncate group-hover:text-brand-500 transition-colors">${link.title}</h4>
+                                                <p class="text-xs text-slate-400 truncate">${link.url.replace(/^https?:\/\//, '')}</p>
+                                            </div>
+                                        </div>
+                                        ${link.desc ? `<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 pt-1">${link.desc}</p>` : ''}
+                                    </a>
+
+                                    <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-slate-400">
+                                        <button onclick="toggleFavorite('${link.id}')" class="p-1 hover:text-amber-400 transition-colors" title="${link.favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
+                                            <i data-lucide="star" class="w-4 h-4 ${link.favorite ? 'text-amber-400 fill-amber-400' : ''}"></i>
+                                        </button>
+                                        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onclick="openModal('${link.id}')" class="p-1.5 hover:text-brand-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Editar">
+                                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                            </button>
+                                            <button onclick="deleteLink('${link.id}')" class="p-1.5 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors" title="Excluir">
+                                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+                `;
+            });
+
+            categoriesContainer.innerHTML = containerHTML;
+            lucide.createIcons();
+        }
+
+        function filterLinks() {
+            const input = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearch');
+            if (input.value.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            renderDashboard();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            filterLinks();
+        }
+
+        function saveLinksState() {
+            localStorage.setItem('drophub_user_links', JSON.stringify(links));
+            renderDashboard();
+        }
+
+        function toggleFavorite(id) {
+            links = links.map(link => link.id === id ? { ...link, favorite: !link.favorite } : link);
+            saveLinksState();
+            showToast('Favoritos atualizados!');
+        }
+
+        function deleteLink(id) {
+            if (confirm('Tem certeza de que deseja excluir este link?')) {
+                links = links.filter(link => link.id !== id);
+                saveLinksState();
+                showToast('Link removido!');
+            }
+        }
+
+        function openModal(editId = null) {
+            const modal = document.getElementById('linkModal');
+            const form = document.getElementById('linkForm');
+            const title = document.getElementById('modalTitle');
+
+            form.reset();
+            if (editId) {
+                const link = links.find(l => l.id === editId);
+                if (link) {
+                    title.innerText = 'Editar Link';
+                    document.getElementById('linkId').value = link.id;
+                    document.getElementById('linkTitle').value = link.title;
+                    document.getElementById('linkUrl').value = link.url;
+                    document.getElementById('linkCategory').value = link.category;
+                    document.getElementById('linkDesc').value = link.desc || '';
+                    document.getElementById('linkFavorite').checked = link.favorite || false;
+                }
+            } else {
+                title.innerText = 'Adicionar Novo Link';
+                document.getElementById('linkId').value = '';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('linkModal').classList.add('hidden');
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('linkId').value;
+            const title = document.getElementById('linkTitle').value.trim();
+            const url = document.getElementById('linkUrl').value.trim();
+            const category = document.getElementById('linkCategory').value;
+            const desc = document.getElementById('linkDesc').value.trim();
+            const favorite = document.getElementById('linkFavorite').checked;
+
+            if (id) {
+                links = links.map(l => l.id === id ? { ...l, title, url, category, desc, favorite } : l);
+                showToast('Link atualizado com sucesso!');
+            } else {
+                const newLink = {
+                    id: Date.now().toString(),
+                    title,
+                    url,
+                    category,
+                    desc,
+                    favorite
+                };
+                links.push(newLink);
+                showToast('Link adicionado!');
+            }
+
+            saveLinksState();
+            closeModal();
+        }
+
+        function copyFullHtmlCode() {
+            const fullDoc = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+            
+            // Clipboard Copy API fallback handling
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(fullDoc).then(() => {
+                    showToast('Código HTML copiado com sucesso!');
+                }).catch(() => {
+                    fallbackCopyText(fullDoc);
+                });
+            } else {
+                fallbackCopyText(fullDoc);
+            }
+        }
+
+        function fallbackCopyText(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Código HTML copiado para a área de transferência!');
+            } catch (err) {
+                alert('Erro ao copiar automaticamente. Por favor, copie manualmente o código fonte.');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.innerText = msg;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
