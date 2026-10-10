@@ -342,6 +342,79 @@
             }
         ];
 
+        // CONFIGURAÇÃO DA BASE COMPARTILHADA
+        // Depois de publicar o Apps Script como Aplicativo da Web, cole a URL terminada em /exec abaixo.
+        const SHARED_API_URL = 'https://script.google.com/macros/s/AKfycby5RFAxzZuy8OWi3PvDvHaFvImBcvCrSxZjq_aPZULyc9t4yWc6GMuscnj9zeVb2Jzj/exec';
+        const SHARED_MODE = /^https:\/\//.test(SHARED_API_URL) && !SHARED_API_URL.includes('COLE_AQUI');
+        const ADMIN_PIN_SESSION_KEY = 'drophub_admin_pin_session';
+
+        function requireAdmin() {
+            if (!SHARED_MODE) return true; // modo local até conectar a API
+            let pin = sessionStorage.getItem(ADMIN_PIN_SESSION_KEY) || '';
+            if (!pin) {
+                pin = prompt('Área de edição restrita. Digite o PIN dos responsáveis autorizados:') || '';
+                if (!pin.trim()) return false;
+                sessionStorage.setItem(ADMIN_PIN_SESSION_KEY, pin.trim());
+            }
+            return true;
+        }
+
+        function loadSharedLinks(expectedLinks = null) {
+            if (!SHARED_MODE) return;
+            const callbackName = '__dropHubJsonp_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+            const script = document.createElement('script');
+            let finished = false;
+            const cleanup = () => {
+                if (finished) return;
+                finished = true;
+                script.remove();
+                try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+            };
+            window[callbackName] = (payload) => {
+                cleanup();
+                if (!payload || payload.ok !== true || !Array.isArray(payload.links)) {
+                    showToast('Não foi possível carregar a base compartilhada.');
+                    return;
+                }
+                const serverLinks = payload.links.map(link => ({
+                    id: String(link.id), title: String(link.title || ''), url: String(link.url || ''),
+                    category: String(link.category || 'gestao'), desc: String(link.desc || ''), favorite: link.favorite === true
+                }));
+                links = serverLinks;
+                try { localStorage.setItem('drophub_user_links', JSON.stringify(links)); } catch (_) {}
+                renderDashboard();
+                if (expectedLinks) {
+                    const expected = JSON.stringify(expectedLinks.map(l => ({ id:String(l.id), title:String(l.title||''), url:String(l.url||''), category:String(l.category||''), desc:String(l.desc||''), favorite:l.favorite===true })));
+                    const actual = JSON.stringify(serverLinks.map(l => ({ id:String(l.id), title:String(l.title||''), url:String(l.url||''), category:String(l.category||''), desc:String(l.desc||''), favorite:l.favorite===true })));
+                    if (expected !== actual) {
+                        sessionStorage.removeItem(ADMIN_PIN_SESSION_KEY);
+                        showToast('Alteração não confirmada. Confira o PIN dos responsáveis.');
+                    } else { showToast('Alterações sincronizadas com a equipe!'); }
+                }
+            };
+            script.onerror = () => { cleanup(); showToast('Falha ao conectar à planilha compartilhada.'); };
+            script.src = SHARED_API_URL + '?action=list&callback=' + encodeURIComponent(callbackName) + '&_=' + Date.now();
+            document.head.appendChild(script);
+        }
+
+        async function sendSharedLinks() {
+            if (!SHARED_MODE) return;
+            const pin = sessionStorage.getItem(ADMIN_PIN_SESSION_KEY) || '';
+            if (!pin) { showToast('PIN dos responsáveis não informado.'); return; }
+            const snapshot = links.map(link => ({ ...link }));
+            try {
+                await fetch(SHARED_API_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'save', pin, links: snapshot })
+                });
+                setTimeout(() => loadSharedLinks(snapshot), 1400);
+            } catch (error) {
+                console.error('Falha ao enviar links ao DropHub compartilhado:', error);
+                showToast('Falha no envio. Verifique a conexão.');
+            }
+        }
+
         // State Management
         // Recupera os links com segurança. Se houver JSON inválido ou uma lista vazia
         // salva anteriormente, restaura os atalhos iniciais para evitar painel em branco.
@@ -391,6 +464,7 @@
                 console.warn('Não foi possível salvar a migração dos links:', error);
             }
             lucide.createIcons();
+            loadSharedLinks();
         });
 
         function initTheme() {
@@ -570,23 +644,21 @@
         }
 
         function saveLinksState() {
-            try {
-                localStorage.setItem('drophub_user_links', JSON.stringify(links));
-                renderDashboard();
-            } catch (error) {
-                console.error('Não foi possível salvar os links do DropHub:', error);
-                renderDashboard();
-                showToast('Não foi possível salvar neste navegador.');
-            }
+            try { localStorage.setItem('drophub_user_links', JSON.stringify(links)); }
+            catch (error) { console.warn('Não foi possível salvar cópia local:', error); }
+            renderDashboard();
+            if (SHARED_MODE) sendSharedLinks();
         }
 
         function toggleFavorite(id) {
+            if (!requireAdmin()) return;
             links = links.map(link => link.id === id ? { ...link, favorite: !link.favorite } : link);
             saveLinksState();
             showToast('Favoritos atualizados!');
         }
 
         function deleteLink(id) {
+            if (!requireAdmin()) return;
             if (confirm('Tem certeza de que deseja excluir este link?')) {
                 links = links.filter(link => link.id !== id);
                 saveLinksState();
@@ -595,6 +667,7 @@
         }
 
         function openModal(editId = null) {
+            if (!requireAdmin()) return;
             const modal = document.getElementById('linkModal');
             const form = document.getElementById('linkForm');
             const title = document.getElementById('modalTitle');
@@ -625,6 +698,7 @@
 
         function handleFormSubmit(e) {
             e.preventDefault();
+            if (!requireAdmin()) return;
             const id = document.getElementById('linkId').value;
             const title = document.getElementById('linkTitle').value.trim();
             const url = document.getElementById('linkUrl').value.trim();
