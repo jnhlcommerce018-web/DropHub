@@ -56,33 +56,6 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(99, 102, 241, 0.8);
         }
-        /* Melhorias visuais: mantêm intactas as funções e a integração */
-        body {
-            background-image:
-                radial-gradient(ellipse at 10% 0%, rgba(99, 102, 241, 0.13), transparent 34%),
-                radial-gradient(ellipse at 95% 12%, rgba(14, 165, 233, 0.08), transparent 28%);
-            background-attachment: fixed;
-        }
-        header {
-            box-shadow: 0 8px 30px rgba(2, 6, 23, 0.08);
-        }
-        #favoritesGrid > a,
-        #categoriesContainer .grid > div {
-            box-shadow: 0 8px 24px rgba(2, 6, 23, 0.08);
-        }
-        #favoritesGrid > a:hover,
-        #categoriesContainer .grid > div:hover {
-            transform: translateY(-3px);
-        }
-        #searchInput {
-            min-height: 44px;
-        }
-        button, input, select, a {
-            -webkit-tap-highlight-color: transparent;
-        }
-        ::selection {
-            background: rgba(99, 102, 241, 0.28);
-        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-darkbg dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
@@ -90,25 +63,16 @@
     <header class="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-darkbg/80 glass-effect">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
             
-       ```html
-<!-- Logo DropHub -->
-<div class="flex items-center gap-3 shrink-0">
-    <div class="flex h-11 w-11 items-center justify-center rounded-xl
-                bg-gradient-to-br from-cyan-400 via-blue-500 to-violet-600
-                shadow-lg shadow-blue-500/25">
-        <i data-lucide="zap" class="h-6 w-6 text-white"></i>
-    </div>
-
-    <div>
-        <h1 class="text-xl font-extrabold leading-none tracking-tight">
-            <span class="text-white">Drop</span><span class="bg-gradient-to-r from-cyan-400 to-violet-500 bg-clip-text text-transparent">Hub</span>
-        </h1>
-        <span class="mt-1 block text-xs font-medium text-slate-400">
-            Central de Acesso Rápido
-        </span>
-    </div>
-</div>
-```
+            <!-- Logo Brand -->
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="p-2 bg-gradient-to-tr from-brand-600 to-indigo-400 rounded-xl text-white shadow-lg shadow-indigo-500/20">
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-none bg-gradient-to-r from-brand-500 to-purple-500 bg-clip-text text-transparent">DropHub</h1>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Central de Acesso Rápido</span>
+                </div>
+            </div>
 
             <!-- Global Search Input -->
             <div class="flex-1 max-w-lg mx-2 sm:mx-4">
@@ -149,31 +113,6 @@
     </header>
 
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-
-        <!-- Painel de boas-vindas visual; não interfere na integração -->
-        <section class="relative overflow-hidden rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white shadow-2xl shadow-indigo-950/20">
-            <div class="absolute -right-10 -top-16 h-48 w-48 rounded-full bg-indigo-500/20 blur-3xl"></div>
-            <div class="absolute -bottom-16 right-1/3 h-40 w-40 rounded-full bg-sky-400/10 blur-3xl"></div>
-            <div class="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                <div class="max-w-2xl">
-                    <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold tracking-wide text-indigo-200">
-                        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-                        PAINEL DE ACESSO DA EQUIPE
-                    </div>
-                    <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Tudo o que sua equipe precisa, em um só lugar.</h2>
-                    <p class="mt-3 max-w-xl text-sm sm:text-base leading-relaxed text-slate-300">Encontre ferramentas, acesse plataformas e mantenha os links de trabalho organizados.</p>
-                </div>
-                <div class="relative flex shrink-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
-                    <div class="rounded-xl bg-indigo-500/20 p-3 text-indigo-200">
-                        <i data-lucide="layout-dashboard" class="h-6 w-6"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-400">Seu ambiente</p>
-                        <p class="font-semibold">Central de operações</p>
-                    </div>
-                </div>
-            </div>
-        </section>
 
         <!-- GitHub Pages Publishing Guide Banner Modal/Section -->
         <section id="githubGuideSection" class="hidden bg-gradient-to-r from-slate-900 to-indigo-950 border border-brand-500/30 rounded-3xl p-6 sm:p-8 text-white relative shadow-2xl space-y-6">
