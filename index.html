@@ -90,16 +90,25 @@
     <header class="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-darkbg/80 glass-effect">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
             
-            <!-- Logo Brand -->
-            <div class="flex items-center gap-3 shrink-0">
-                <div class="p-2 bg-gradient-to-tr from-brand-600 to-indigo-400 rounded-xl text-white shadow-lg shadow-indigo-500/20">
-                    <i data-lucide="zap" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg leading-none bg-gradient-to-r from-brand-500 to-purple-500 bg-clip-text text-transparent">DropHub</h1>
-                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Central de Acesso Rápido</span>
-                </div>
-            </div>
+       ```html
+<!-- Logo DropHub -->
+<div class="flex items-center gap-3 shrink-0">
+    <div class="flex h-11 w-11 items-center justify-center rounded-xl
+                bg-gradient-to-br from-cyan-400 via-blue-500 to-violet-600
+                shadow-lg shadow-blue-500/25">
+        <i data-lucide="zap" class="h-6 w-6 text-white"></i>
+    </div>
+
+    <div>
+        <h1 class="text-xl font-extrabold leading-none tracking-tight">
+            <span class="text-white">Drop</span><span class="bg-gradient-to-r from-cyan-400 to-violet-500 bg-clip-text text-transparent">Hub</span>
+        </h1>
+        <span class="mt-1 block text-xs font-medium text-slate-400">
+            Central de Acesso Rápido
+        </span>
+    </div>
+</div>
+```
 
             <!-- Global Search Input -->
             <div class="flex-1 max-w-lg mx-2 sm:mx-4">
